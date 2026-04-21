@@ -1,0 +1,65 @@
+---
+title: "LE 5 vervangende opdracht"
+author: "Milan"
+date: "2026-04-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("readxl")
+library("readxl")
+```
+
+Casus 1 (kwikvergiftiging):
+
+```{r}
+mercury <- read_xlsx("C:/Users/milan/Desktop/Documenten uni/Bio-informatica/Vervangende opdracht LE5/Thymus.xlsx")
+
+
+
+```
+
+
+Casus 2 (thymus):
+
+
+
+```{r}
+thymus <- read_xlsx("C:/Users/milan/Desktop/Documenten uni/Bio-informatica/Vervangende opdracht LE5/Thymus.xlsx")
+
+library(dplyr)
+
+thymus_cond <- thymus %>%
+  mutate(condition = case_when(
+    castr == 0 & ectomy == 0 ~ "neither",
+    castr == 0 & ectomy == 1 ~ "ectomy",
+    castr == 1 & ectomy == 0 ~ "castr",
+    castr == 1 & ectomy == 1 ~ "both"
+  ))
+
+#Beschrijvende statistieken:
+boxplot(weight ~ condition, data = thymus_cond)
+
+summary(thymus)
+
+#Model:
+
+thymus_model <- lm(weight ~ condition, data = thymus_cond)
+
+#Condities t-toets checken:
+
+
+
+#T-toets uitvoeren:
+
+t.test(weight ~ condition, data = thymus_cond[thymus_cond$condition %in% c("neither", "ectomy"), ])
+
+t.test(weight ~ condition, data = thymus_cond[thymus_cond$condition %in% c("neither", "castr"), ])
+
+t.test(weight ~ condition, data = thymus_cond[thymus_cond$condition %in% c("neither", "both"), ])
+
+#Two-way ANOVA:
+anova()
+```
+

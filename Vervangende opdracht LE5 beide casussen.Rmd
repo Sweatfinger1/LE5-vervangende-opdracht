@@ -73,21 +73,21 @@ Geschikt omdat:
 ```{r}
 mercury <- read_xlsx("C:/Users/milan/Desktop/Documenten uni/Bio-informatica/Vervangende opdracht LE5/Mercury.xlsx")
 
-library(dplyr)
-library(car)
-
 #Packages installeren
 install.packages("readxl")
 install.packages("dplyr")
 install.packages("ggplot2")
+install.packages("car")
+
  
 #Packages laden
 library(readxl)
 library(dplyr)
 library(ggplot2)
+library(car)
  
 #Data inladen
-data <- read_excel("Mercury.xlsx")
+Mercury <- read_excel("Mercury.xlsx")
  
 #Data voorbereiden:
 #Maak een nieuwe binaire variabele (0 = no, 1 = yes) op basis van MERCURY_CONT
@@ -185,8 +185,9 @@ abline(h = 0)
 #De resultaten van de ANOVA bekijken:
 summary(thymus_anova)
 
-plot(thymus_anova)
-
 #Het gecombineerde effect van de ectomy en castratie zorgt dus niet voor een significant verschil in thymus gewicht ten opzichte van de individuele ingrepen.
+```
+```{r}
+plot(thymus_anova)
 ```
 

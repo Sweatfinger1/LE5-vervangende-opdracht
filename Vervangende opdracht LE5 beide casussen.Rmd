@@ -1,0 +1,192 @@
+---
+title: "LE 5 vervangende opdracht"
+author: "Milan"
+date: "2026-04-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("readxl")
+library("readxl")
+```
+
+Casus 1 (kwikvergiftiging):
+
+ONDERZOEKSVRAAG
+Vraagstelling:
+Kunnen kenmerken van een meer (de pH-waarde, de hoeveelheid chlorofyl, calcium en alkaliniteit) de kans op kwikverontreiniging in vis voorspellen?
+
+Domein:
+Milieu / volksgezondheid (zoetwatermeren en vis)
+
+Determinanten:
+- pH (continu)
+- chlorofyl (continu)
+- calcium (continu)
+- alkaliniteit (continu)
+
+Aantal determinanten: 4 (allemaal continue variabelen)
+
+Uitkomst:
+- Kwikverontreiniging (categorisch, dichotoom: ja/nee)
+
+Model (logistische regressie):
+log(p / (1 - p)) = β0 + β1pH + β2chlorofyl + β3calcium + β4alkaliniteit
+HYPOTHESES
+
+H0: Kenmerken van een meer (met name pH) hebben geen effect op de kans op kwikverontreiniging
+H1: pH heeft wel effect op de kans op kwikverontreiniging
+α = 0,05 (tweezijdig)
+
+STEEKPROEF EN BESCHRIJVENDE STATISTIEK
+De steekproef bestaat uit 53 meren in Florida
+
+############################################################ 
+INFORMATIE OVER DE TOETS
+Probleem:
+- Er zijn meerdere continue determinanten
+- De uitkomstvariabele is dichotoom
+- Mogelijke correlatie tussen determinanten (multicollineariteit)
+- Lineaire regressie is niet geschikt omdat kansen buiten 0–1 kunnen vallen
+
+VOORLOPIGE OPLOSSING
+T-toets per determinant (verontreinigd vs niet-verontreinigd)
+t.test(pH ~ MERCURY_CONT, data = Mercury)
+t.test(Chlorophyll ~ MERCURY_CONT, data = Mercury)
+t.test(Calcium ~ MERCURY_CONT, data = Mercury)
+t.test(Alkalinity ~ MERCURY_CONT, data = Mercury)
+
+Aannames t-toets:
+- Onafhankelijke observaties
+- Normale verdeling binnen groepen
+- Homogeniteit van varianties
+
+JUISTE TOETS
+Logistische regressie:
+Geschikt omdat:
+- De afhankelijke variabele dichotoom is
+- De onafhankelijke variabelen continu zijn
+
+
+
+```{r}
+mercury <- read_xlsx("C:/Users/milan/Desktop/Documenten uni/Bio-informatica/Vervangende opdracht LE5/Mercury.xlsx")
+
+library(dplyr)
+library(car)
+
+#Packages installeren
+install.packages("readxl")
+install.packages("dplyr")
+install.packages("ggplot2")
+ 
+#Packages laden
+library(readxl)
+library(dplyr)
+library(ggplot2)
+ 
+#Data inladen
+data <- read_excel("Mercury.xlsx")
+ 
+#Data voorbereiden:
+#Maak een nieuwe binaire variabele (0 = no, 1 = yes) op basis van MERCURY_CONT
+Mercury$contaminated <- ifelse(Mercury$MERCURY_CONT == "yes", 1, 0)
+ 
+#Beschrijvende statistiek
+summary(data)
+ 
+#Gemiddelden per groep:
+#Gebruik de functie aggregate om per contaminatiegroep het gemiddelde te berekenen van de pH, #Alkalinity, Calcium en Chlorophyll.
+aggregate(cbind(pH, Chlorophyll, Calcium, Alkalinity) ~ contaminated, data = Mercury, mean)
+ 
+#Figuren:
+#Histogram pH
+hist(Mercury$Alkalinity, main = "Histogram Alkalinity", xlab = "Alkalinity", ylab = "Count",  breaks = 15)
+hist(Mercury$pH, main = "Histogram pH", xlab = "pH", ylab = "Count",  breaks = 15)
+hist(Mercury$Calcium, main = "Histogram Calcium", xlab = "Calcium", ylab = "Count",  breaks = 15)
+hist(Mercury$Chlorophyll, main = "Histogram Chlorophyll", xlab = "Chlorophyll", ylab = "Count",  breaks = 15)
+ 
+#Boxplot voor Alkalinity, pH, Calcium, Chlorophyll, vs contaminatie
+boxplot(pH ~ contaminated, data = Mercury, main = "Boxplot pH vs contaminatie")
+boxplot(Alkalinity ~ contaminated, data = Mercury, main = "Boxplot Alkalinity vs contaminatie")
+boxplot(Calcium ~ contaminated, data = Mercury, main = "Boxplot Calcium vs contaminatie")
+boxplot(Chlorophyll ~ contaminated, data = Mercury, main = "Boxplot Chlorophyll vs contaminatie")
+ 
+#Modellen:
+
+#Model met pH (hoofdvraag)
+model1 <- glm(contaminated ~ pH, data = Mercury,  family = binomial)
+
+summary(model1)
+ 
+#Model met alle determinanten
+model2 <- glm(contaminated ~ pH + Chlorophyll + Calcium + Alkalinity, data = Mercury,  family = binomial)
+
+summary(model2)
+
+```
+
+
+Casus 2 (thymus):
+
+
+```{r}
+thymus <- read_xlsx("C:/Users/milan/Desktop/Documenten uni/Bio-informatica/Vervangende opdracht LE5/Thymus.xlsx")
+
+
+thymus_cond <- thymus %>%
+  mutate(condition = case_when(
+    castr == 0 & ectomy == 0 ~ "neither",
+    castr == 0 & ectomy == 1 ~ "ectomy",
+    castr == 1 & ectomy == 0 ~ "castr",
+    castr == 1 & ectomy == 1 ~ "both"
+  ))
+
+#Beschrijvende statistieken:
+thymus_cond
+boxplot(weight ~ condition, data = thymus_cond)
+
+#Model:
+
+thymus_model <- lm(weight ~ condition, data = thymus_cond)
+
+#Condities t-toets checken:
+
+#De gewicht data per conditie ziet er normaal verdeeld uit, zie hiervoor de boxplots. Verder is er random gesampled en zijn de observaties onafhankelijk. n > 30, dus we kunnen sowieso t-toets gebruiken ook al is het niet helemaal normale data.
+
+#T-toets uitvoeren:
+
+t.test(weight ~ condition, data = thymus_cond[thymus_cond$condition %in% c("neither", "ectomy"), ])
+
+t.test(weight ~ condition, data = thymus_cond[thymus_cond$condition %in% c("neither", "castr"), ])
+
+t.test(weight ~ condition, data = thymus_cond[thymus_cond$condition %in% c("neither", "both"), ])
+
+#Dus elke groep verschilt significant tov de nulhypothese!
+
+#Two-way ANOVA:
+
+thymus_cond$ectomy <- factor(thymus_cond$ectomy)
+thymus_cond$castr  <- factor(thymus_cond$castr)
+
+thymus_anova <- aov(weight ~ ectomy * castr, data = thymus_cond)
+
+#Normaliteit residuals mbv residual QQ-plot:
+
+res <- residuals(thymus_anova)
+
+qqPlot(res)
+
+#Homoscedasiteit check middels residual plot rondom nullijn:
+plot(res)
+abline(h = 0)
+
+#De resultaten van de ANOVA bekijken:
+summary(thymus_anova)
+
+plot(thymus_anova)
+
+#Het gecombineerde effect van de ectomy en castratie zorgt dus niet voor een significant verschil in thymus gewicht ten opzichte van de individuele ingrepen.
+```
+
